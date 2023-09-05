@@ -1,2 +1,11 @@
-# chatbot-baseado-emregras-e-dados
-Projeto de um agente conversacional baseado em regras e dados, com uso de NLTK, expressões regulares, urllib, BeautifulSoup, scikit-learn
+# Chatbot baseado em regras e dados
+
+Projeto de um agente de diálogo, baseado em regras e dados, para trazer ocorrências de determinado assunto. 
+
+<body>
+<center>
+<img src="https://i.postimg.cc/0Q7ZcBm7/header.png" align="middle">
+</center>
+</body>  
+
+---  
