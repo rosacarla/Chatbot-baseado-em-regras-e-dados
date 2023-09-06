@@ -128,8 +128,9 @@ sentencas[10:15]
 ><p align="justify">Cria funções para pré-processar as entradas do usuário, com retirada de  pontuações e uso de Stemming nos textos, para que palavras similares sejam processadas igualmente pelo algoritmo (por ex., pedra e pedregulho teriam mesma forma léxica).</p>
 """
 
+# Commented out IPython magic to ensure Python compatibility.
 # Instala biblioteca unidecode para eliminar acentuacao de palavras em Python
-!pip install unidecode
+# %pip install unidecode
 
 # Importa biblioteca unicode
 from unidecode import unidecode
