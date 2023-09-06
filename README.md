@@ -1,4 +1,4 @@
-# ♻️ Chatbot híbrido baseado em regras e dados
+# ♻️ CHATBOT HÍBRIDO BASEADO EM REGRAS E DADOS
 
 Projeto de um agente de diálogo de <i>question answering</i>, baseado em regras e dados (corpus de texto de um tema), para trazer ocorrências de determinado assunto. 
 
