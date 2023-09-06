@@ -1,6 +1,6 @@
-# Chatbot baseado em regras e dados
+# ♻️ Chatbot híbrido baseado em regras e dados
 
-Projeto de um agente de diálogo de question answering, baseado em regras e dados (corpus de texto de um tema), para trazer ocorrências de determinado assunto. 
+Projeto de um agente de diálogo de <i>question answering</i>, baseado em regras e dados (corpus de texto de um tema), para trazer ocorrências de determinado assunto. 
 
 <body>
 <center>
@@ -10,7 +10,7 @@ Projeto de um agente de diálogo de question answering, baseado em regras e dado
 
 ---  
 
-## Tecnologias utilizadas  
+## 🧰 Tecnologias utilizadas  
 - [NLTK](https://www.nltk.org/), pacote de NLP do Python
 - [Expressões Regulares](https://docs.python.org/3/library/re.html), pacote de Regex do Python
 - [urllib](https://docs.python.org/pt-br/3/library/urllib.html) e [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/), bibliotecas para obter dados de páginas HTML
@@ -18,13 +18,13 @@ Projeto de um agente de diálogo de question answering, baseado em regras e dado
 
 ---  
 
-## Licença  
+## ©️ Licença  
 Distribuído sob a licença MIT. Veja `LICENSE`para informações adicionais.  
 
 ---  
 
-## Contato  
+## 📬 Contato  
 Autora: Carla Edila Silveira  
 E-mail:  rosa.carla@pucpr.edu.br
 
----  
+---
