@@ -11,7 +11,9 @@ Original file is located at
 >DISCIPLINA: Agentes Conversacionais  
 >AUTORA: Carla Edila Silveira  
 >OBJETIVO: construir um agente de diálogo que trará ocorrências sobre determinado tema  
-> DATA: 05/09/2023
+>MELHORIA: obtenção de dados sobre o Brasil a partir de diferentes fontes  
+>GITHUB: https://github.com/rosacarla/Chatbot-baseado-em-regras-e-dados  
+>DATA: 05/09/2023
 ______________________________________________________________________
 
 <body>
@@ -51,6 +53,8 @@ nltk.download('stopwords')# Lista de stopwords
 import numpy as np
 import random
 import string
+import requests
+from bs4 import BeautifulSoup
 import bs4 as bs
 import urllib.request
 import re
@@ -62,26 +66,51 @@ warnings.filterwarnings("ignore", category=UserWarning)
 ><p align="justify">Será feito um <i>web-scraping</i> para obter os dados automaticamente da Wikipedia. Este processo deve ser executado só uma vez, e o arquivo salvo em forma de texto na máquina.</p>
 """
 
-# Busca pagina sobre o BRASIL. Para mudar o tema basta colocar o link para outra pagina.
+# Busca paginas sobre o BRASIL. Para mudar o tema basta colocar o link para outra pagina.
 # É possivel obter dados de páginas diferentes, basta definir uma lista de links e iterar sobre elas.
-codigo_html = urllib.request.urlopen('https://pt.wikipedia.org/wiki/Brasil')
-codigo_html = codigo_html.read()
 
-# Processa codigo HTML lido
-html_processado = bs.BeautifulSoup(codigo_html, 'lxml')
+# Lista de URLs para consulta
+urls = ['https://pt.wikipedia.org/wiki/Brasil',
+        'https://brasilescola.uol.com.br/geografia/pais-brasil.htm',
+        'https://www.worldbank.org/pt/country/brazil/overview',
+        'https://www.bbc.com/portuguese/articles/cw56kkzgnq6o',
+        'https://www.bbc.com/portuguese/articles/c3gjpmvkv5eo',
+        'https://www.bbc.com/portuguese/articles/c51qdpqxneno',
+        'https://www.bbc.com/portuguese/articles/cj79kpjlp59o',
+        'https://www.observatoriodasmetropoles.net.br/ibge-apresenta-os-primeiros-resultados-do-censo-2022/'
 
-# Busca todos os paragrafos do texto
-paragrafos = html_processado.find_all('p')
+]
 
+# Inicializa string para armazenar o texto
 texto = ''
 
-# Percorre paragrafos e concatena textos
-for p in paragrafos:
-  texto += p.text
+# Itera sobre URLs
+for url in urls:
+    try:
+        # Solicita HTTP para obter conteudo da pagina
+        codigo_html = urllib.request.urlopen(url)
+
+        # Le conteudo da pagina
+        codigo_html = codigo_html.read()
+
+        # Processa codigo HTML lido
+        html_processado = BeautifulSoup(codigo_html, 'html.parser')
+
+        # Busca todos os paragrafos do texto
+        paragrafos = html_processado.find_all('p')
+
+        # Concatena os textos dos paragrafos
+        for p in paragrafos:
+            texto += p.text + '\n'
+
+    except Exception as e:
+        print(f'Erro ao processar a página {url}: {str(e)}')
 
 # Normaliza texto para minusculas
 texto = texto.lower()
-texto[0:1000]
+
+# Imprime primeiros 1000 caracteres do texto
+print(texto[:1000])
 
 """>## 6. Pré-processamento do corpus
 > É necessário remover caracteres especiais do texto e dividí-lo em sentenças válidas.
@@ -99,6 +128,12 @@ sentencas[10:15]
 ><p align="justify">Cria funções para pré-processar as entradas do usuário, com retirada de  pontuações e uso de Stemming nos textos, para que palavras similares sejam processadas igualmente pelo algoritmo (por ex., pedra e pedregulho teriam mesma forma léxica).</p>
 """
 
+# Instala biblioteca unidecode para eliminar acentuacao de palavras em Python
+!pip install unidecode
+
+# Importa biblioteca unicode
+from unidecode import unidecode
+
 # Define funcao que faz Stemming em todo texto
 def stemming(tokens):
   stemmer = nltk.stem.RSLPStemmer()
@@ -107,29 +142,50 @@ def stemming(tokens):
     novotexto.append(stemmer.stem(token.lower()))
   return novotexto
 
-# Funcao que remove pontuacao
-removePontuacao = dict((ord(punctuation), None) for punctuation in string.punctuation)
-
+# Funcao que remove pontuacao, stopwords e aplica stemming
 def preprocessa(documento):
-  return stemming(nltk.word_tokenize(documento.lower().translate(removePontuacao), language='portuguese'))
+  # Remove pontuacao
+  documento = documento.translate(str.maketrans('', '', string.punctuation))
 
-# Conferir como fica um texto apos seu pré-processamento
+  # Remove acentos
+  documento = unidecode(documento)
+
+  # Tokenizacao de palavras
+  tokens = nltk.word_tokenize(documento, language='portuguese')
+
+  # Remove stopwords
+  stopwords_pt = set(stopwords.words('portuguese'))
+  tokens = [token.lower() for token in tokens if token.lower() not in stopwords_pt]
+
+  # Aplica stemming
+  tokens = stemming(tokens)
+
+  return tokens
+
+# Conferir como fica um texto apos seu pre processamento
 preprocessa("Olá meu nome é Lucas, eu moro no Brasil, e você?")
 
 """>## 8. Resposta a saudações
 ><p align="justify">Embora seja um sistema de diálogo baseado em tarefas, é provável que o usuário inicie conversas com saudações ao agente. Por isso, será desenvolvida uma função (regras) para tratar desta situação.</p>  
-><p align="justify">Serão criadas algumas respostas possíveis, dentre as quais serão escolhidas algumas aleatoriamente, para evitar que o agente fique repetitivo.</p>
+><p align="justify">Serão criado grupos de respostas possíveis, dentre as quais serão escolhidas algumas aleatoriamente, para evitar que o agente fique repetitivo.</p>
 """
 
 saudacoes_entrada = ("olá", "bom dia", "boa tarde", "boa noite", "oi", "como vai", "e aí", "tudo bem")
-saudacoes_respostas = ["olá", "olá, espero que esteja tudo bem contigo", "oi", "Oie", "Seja bem-vindo, em que posso te ajudar?"]
+saudacoes_respostas = ["olá", "olá, espero que esteja tudo bem contigo", "Olá! Como posso ajudar você hoje?", "oi", "Oie",
+                       "Seja bem-vindo, em que posso te ajudar?", "Oi! Estou à disposição para responder às suas perguntas.",
+                       "Olá! Estou aqui para fornecer informações sobre o Brasil. O que você gostaria de saber?",
+                       "Oi! Bem-vindo! O que você deseja saber sobre o Brasil?"]
 
+# Funcao para responder a saudacao
 def geradorsaudacoes(saudacao):
-  for token in saudacao.split():
-    if token.lower() in saudacoes_entrada:
-      return random.choice(saudacoes_respostas)
+    for token in saudacao.split():
+        if token.lower() in saudacoes_entrada:
+            return random.choice(saudacoes_respostas)
 
-# Ao executar este exemplo várias vezes serão vistas respostas diferenres
+    # Se nenhuma saudacao conhecida for encontrada, retorna None
+    return None
+
+# Ao reexecutar este exemplo serao vistas respostas diferentes
 geradorsaudacoes('Olá')
 
 """>## 9. Resposta a consultas do usuário
@@ -140,7 +196,8 @@ geradorsaudacoes('Olá')
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-def geradorrespostas(entradausuario):
+# Funcao para responder a consultas do usuario
+def geradorrespostas(entradausuario): # testar com sentencas
   resposta = ''
   sentencas.append(entradausuario)
 
@@ -172,16 +229,17 @@ def geradorrespostas(entradausuario):
 
 """
 
+# Inicia interacao com usuario
+print("Olá, eu sou o Agente Tupiniquim. Me pergunte qualquer coisa sobre nosso país ou diga 'tchau' para sair.")
 continue_dialogue = True
-print("Olá, eu sou o Agente Tupiniquim. Me pergunte qualquer coisa sobre nosso país.")
-while (continue_dialogue == True):
+while continue_dialogue:
   # Obtem entrada do usuario
   human_text = input().lower()
 
   if human_text != 'tchau':
-    if human_text == 'obrigado' or human_text == 'muito obrigado' or human_text == 'agradecido':
+    if human_text == 'obrigado' or human_text == 'muito obrigado' or human_text == 'agradecido' or human_text == 'valeu':
       continue_dialogue = False
-      print("Agente Tupiniquim: Disponha")
+      print("Agente Tupiniquim: Disponha!")
     else:
       if geradorsaudacoes(human_text) != None:
         print("Agente Tupiniquim: " + geradorsaudacoes(human_text))
@@ -191,13 +249,13 @@ while (continue_dialogue == True):
         sentencas.remove(human_text)
   else:
     continue_dialogue = False
-    print("Agente Tupiniquim: Até a próxima.")
+    print("Agente Tupiniquim: Até a próxima!")
 
 """>## 11. Como melhorar o projeto?
-><p align="justify">Este agente de diálogo utiliza modelo baseado em regras, em que uma das regras usa corpus de dados para formular respostas. Desse modo, o modelo ficou mais flexível, sem necessidade de criar centenas/milhares de regras. Vejamos como melhorar o projeto:</p>  
+><p align="justify">Este agente de diálogo adota modelo baseado em regras. Uma das regras usa corpus de dados para formular respostas. Assim, o modelo se torna mais flexível, sem necessidade de criar centenas/milhares de regras. Vejamos como melhorar o projeto:</p>  
 ><p align="justify">A) Além dos parágrafos (tag "p") da página da Wikipedia, podem ser usados dados dispostos na coluna direita, que trazem informações relevantes, como população, atual presidente etc., para montar sentenças.</p>  
 ><p align="justify">B) Melhorar o cálculo de similaridade com uso de um modelo de Word Embeddings, além do TF-IDF.</p>
-><p align="justify">C) Obter dados sobre o Brasil a partir de diferentes fontes.</p>
+><p align="justify">C) Obter dados sobre o Brasil a partir de diferentes fontes. - OK!</p>
 ><p align="justify">D) Criar classificador de contexto para o agente e, de modo dinâmico, buscar páginas da Wikipedia correspondentes à pergunta do usuário, para depois dar a resposta. Desse modo o agente não se limitaria a perguntas sobre o Brasil.</p>
 
 >## 12. Referências e material complementar  
